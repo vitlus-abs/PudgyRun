@@ -95,14 +95,11 @@
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
-        alert("1");
-
         createUnityInstance(canvas, config, (progress) => {
           progressBarFull.style.width = (100 * progress) + "%";
         }).then((unityInstance) => {
           // Hide the loading bar when done
           loadingBar.style.display = "none";
-          alert("2");
 
           // -----------------------------------------------
           // 1. Check if running in Telegram WebApp
@@ -110,8 +107,6 @@
           // -----------------------------------------------
           if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
             // Attempt to lock orientation in landscape
-            alert("3");
-
             if (Telegram.WebApp.lockOrientation) {
               Telegram.WebApp.lockOrientation("landscape")
                 .catch((err) => {
@@ -134,7 +129,6 @@
               unityInstance.SetFullscreen(1);
             }
           }
-          alert("4");
 
           // -----------------------------------------------
           // Fallback fullscreen button for non-Telegram usage
