@@ -109,16 +109,16 @@
           if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
             // Attempt to lock orientation in landscape
             if (Telegram.WebApp.lockOrientation) {
-              Telegram.WebApp.lockOrientation("landscape")
-                .catch((err) => {
+              Telegram.WebApp.lockOrientation("landscape").then(() => {
+              }).catch((err) => {
                   console.warn("Orientation lock failed or not supported:", err);
                 });
             }
 
             // Then request fullscreen
             if (Telegram.WebApp.requestFullscreen) {
-              Telegram.WebApp.requestFullscreen()
-                .catch((err) => {
+              Telegram.WebApp.requestFullscreen().then(() => {
+              }).catch((err) => {
                   console.warn("Telegram WebApp fullscreen request failed:", err);
                   // Fallback to Unity's built-in fullscreen if needed
                   unityInstance.SetFullscreen(1);
