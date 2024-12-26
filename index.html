@@ -146,34 +146,36 @@
           // Hide the loading bar when done
           loadingBar.style.display = "none";
 
-          // -----------------------------------------------
+         // -----------------------------------------------
           // 1. Check if running in Telegram WebApp
-          // 2. If yes, automatically lock orientation and go fullscreen
+          // 2. If yes, attempt orientation lock & fullscreen
           // -----------------------------------------------
           if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
             debugLog("Telegram.WebApp detected. Attempting orientation lock & fullscreen...");
 
             // Attempt to lock orientation in landscape
             if (Telegram.WebApp.lockOrientation) {
-              Telegram.WebApp.lockOrientation("landscape").then(() => {
+              try {
+                Telegram.WebApp.lockOrientation("landscape");
                 debugLog("Orientation lock success: landscape.");
-              }).catch((err) => {
+              } catch (err) {
                 debugLog("Orientation lock failed or not supported: " + err);
-              });
+              }
             } else {
               debugLog("Telegram.WebApp.lockOrientation not supported in this environment.");
             }
 
             // Then request fullscreen
             if (Telegram.WebApp.requestFullscreen) {
-              Telegram.WebApp.requestFullscreen().then(() => {
+              try {
+                Telegram.WebApp.requestFullscreen();
                 debugLog("Entered Telegram fullscreen successfully.");
-              }).catch((err) => {
+              } catch (err) {
                 debugLog("Telegram.WebApp.requestFullscreen failed: " + err);
                 // Fallback to Unity's built-in fullscreen
                 unityInstance.SetFullscreen(1);
                 debugLog("Falling back to Unity fullscreen.");
-              });
+              }
             } else {
               debugLog("Telegram.WebApp.requestFullscreen not supported. Using Unity fullscreen.");
               unityInstance.SetFullscreen(1);
