@@ -111,6 +111,7 @@
               Telegram.WebApp.lockOrientation("landscape")
                 .catch((err) => {
                   console.warn("Orientation lock failed or not supported:", err);
+                  alert(err);
                 });
             }
 
@@ -119,6 +120,7 @@
               Telegram.WebApp.requestFullscreen()
                 .catch((err) => {
                   console.warn("Telegram WebApp fullscreen request failed:", err);
+                  alert(err);
                   // Fallback to Unity's built-in fullscreen if needed
                   unityInstance.SetFullscreen(1);
                 });
