@@ -26,6 +26,58 @@
       </div>
     </div>
 
+    <!-- Portrait Overlay -->
+    <div id="rotate-overlay">
+      <div id="rotate-overlay-content">
+        <h2>Please rotate your device</h2>
+        <p>We recommend playing in landscape.</p>
+        <button id="rotate-restart-btn">Rotate & Restart</button>
+      </div>
+    </div>
+
+    <style>
+      /* Fullscreen overlay (hidden by default) */
+      #rotate-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.85);
+        color: #fff;
+        display: none; /* Hidden initially */
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        text-align: center;
+      }
+
+      #rotate-overlay-content {
+        padding: 20px;
+        max-width: 90vw;
+      }
+
+      #rotate-overlay h2 {
+        margin: 0 0 10px;
+        font-size: 1.8em;
+      }
+
+      #rotate-overlay p {
+        margin: 0 0 20px;
+        font-size: 1.2em;
+      }
+
+      #rotate-restart-btn {
+        padding: 12px 20px;
+        font-size: 1em;
+        cursor: pointer;
+        border: none;
+        color: #fff;
+        background: #2196f3; /* Your choice */
+        border-radius: 4px;
+      }
+    </style>
+
     <script>
       // === DOM References ===
       var container = document.querySelector("#unity-container");
@@ -155,6 +207,50 @@
             alert(message);
           });
       };
+
+      // Grab the overlay & button references
+      const rotateOverlay = document.getElementById("rotate-overlay");
+      const rotateRestartBtn = document.getElementById("rotate-restart-btn");
+
+      // A function to check orientation and toggle the overlay
+      function checkOrientation() {
+        const inPortrait = window.innerHeight > window.innerWidth;
+
+        if (inPortrait) {
+          // Show overlay
+          rotateOverlay.style.display = "flex";
+        } else {
+          // Hide overlay
+          rotateOverlay.style.display = "none";
+        }
+      }
+
+      // Listen for resize/orientation change events
+      window.addEventListener("resize", checkOrientation);
+      window.addEventListener("orientationchange", checkOrientation);
+
+      // Also call it once on load:
+      checkOrientation();
+
+      // If user taps "Rotate & Restart", attempt to lock orientation or just reload
+      rotateRestartBtn.onclick = function () {
+        // Attempt orientation lock (if Telegram or standard APIs work)
+        if (Telegram && Telegram.WebApp && Telegram.WebApp.lockOrientation) {
+          try {
+            Telegram.WebApp.lockOrientation("landscape");
+          } catch (err) {
+            console.warn("Telegram lockOrientation failed:", err);
+          }
+        } else if (screen.orientation && screen.orientation.lock) {
+          // Standard HTML5 approach
+          screen.orientation.lock("landscape").catch((err) => {
+            console.warn("screen.orientation.lock failed:", err);
+          });
+        }
+        // Then reload the page so the game restarts in landscape
+        location.reload();
+      };
+
       document.body.appendChild(script);
     </script>
   </body>
