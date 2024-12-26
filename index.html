@@ -2,11 +2,11 @@
 <html lang="en-us">
   <head>
     <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Unity WebGL Player | Pudgy Run</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
+    <link rel="shortcut icon" href="TemplateData/favicon.ico" />
+    <link rel="stylesheet" href="TemplateData/style.css" />
   </head>
   <body>
     <div id="unity-container" class="unity-desktop">
@@ -28,26 +28,28 @@
 
     <script>
       // === DOM References ===
-      var container        = document.querySelector("#unity-container");
-      var canvas           = document.querySelector("#unity-canvas");
-      var loadingBar       = document.querySelector("#unity-loading-bar");
-      var progressBarFull  = document.querySelector("#unity-progress-bar-full");
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
       var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-      var warningBanner    = document.querySelector("#unity-warning");
+      var warningBanner = document.querySelector("#unity-warning");
 
       // === Show Warning / Error Banner ===
       function unityShowBanner(msg, type) {
         function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+          warningBanner.style.display = warningBanner.children.length
+            ? "block"
+            : "none";
         }
-        var div = document.createElement('div');
+        var div = document.createElement("div");
         div.innerHTML = msg;
         warningBanner.appendChild(div);
 
-        if (type === 'error') {
-          div.style = 'background: red; padding: 10px;';
-        } else if (type === 'warning') {
-          div.style = 'background: yellow; padding: 10px;';
+        if (type === "error") {
+          div.style = "background: red; padding: 10px;";
+        } else if (type === "warning") {
+          div.style = "background: yellow; padding: 10px;";
           setTimeout(function () {
             warningBanner.removeChild(div);
             updateBannerVisibility();
@@ -73,14 +75,15 @@
       // === Mobile vs Desktop Handling ===
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         // Mobile: fill the browser area
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
+        var meta = document.createElement("meta");
+        meta.name = "viewport";
+        meta.content =
+          "width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes";
+        document.getElementsByTagName("head")[0].appendChild(meta);
 
         container.className = "unity-mobile";
         canvas.className = "unity-mobile";
-        
+
         // If you want to lower the device pixel ratio for performance:
         // config.devicePixelRatio = 1;
       } else {
@@ -97,48 +100,55 @@
       script.src = loaderUrl;
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = (100 * progress) + "%";
-        }).then((unityInstance) => {
-          // Hide the loading bar when done
-          loadingBar.style.display = "none";
+          progressBarFull.style.width = 100 * progress + "%";
+        })
+          .then((unityInstance) => {
+            // Hide the loading bar when done
+            loadingBar.style.display = "none";
 
-          // -----------------------------------------------
-          // 1. Check if running in Telegram WebApp
-          // 2. If yes, automatically lock orientation and go fullscreen
-          // -----------------------------------------------
-          if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-            // Attempt to lock orientation in landscape
-            if (Telegram.WebApp.lockOrientation) {
-              Telegram.WebApp.lockOrientation("landscape")
-                .catch((err) => {
-                  console.warn("Orientation lock failed or not supported:", err);
-                });
-            }
-
-            // Then request fullscreen
-            if (Telegram.WebApp.requestFullscreen) {
-              Telegram.WebApp.requestFullscreen()
-                .catch((err) => {
-                  console.warn("Telegram WebApp fullscreen request failed:", err);
-                  // Fallback to Unity's built-in fullscreen if needed
+            // -----------------------------------------------
+            // 1. Check if running in Telegram WebApp
+            // 2. If yes, automatically lock orientation and go fullscreen
+            // -----------------------------------------------
+            if (typeof Telegram !== "undefined" && Telegram.WebApp) {
+              // Attempt to lock orientation in landscape
+              if (Telegram.WebApp.lockOrientation) {
+                try {
+                  Telegram.WebApp.lockOrientation("landscape");
+                } catch (err) {
+                  console.warn(
+                    "Orientation lock failed or not supported:",
+                    err
+                  );
+                }
+              }
+              // Then request fullscreen
+              if (Telegram.WebApp.requestFullscreen) {
+                try {
+                  Telegram.WebApp.requestFullscreen();
+                } catch (err) {
+                  console.warn(
+                    "Telegram WebApp fullscreen request failed:",
+                    err
+                  );
                   unityInstance.SetFullscreen(1);
-                });
-            } else {
-              // If no requestFullscreen API, fallback to Unity
-              unityInstance.SetFullscreen(1);
+                }
+              } else {
+                // If no requestFullscreen API, fallback to Unity
+                unityInstance.SetFullscreen(1);
+              }
             }
-          }
 
-          // -----------------------------------------------
-          // Fallback fullscreen button for non-Telegram usage
-          // -----------------------------------------------
-          fullscreenButton.onclick = () => {
-            unityInstance.SetFullscreen(1);
-          };
-
-        }).catch((message) => {
-          alert(message);
-        });
+            // -----------------------------------------------
+            // Fallback fullscreen button for non-Telegram usage
+            // -----------------------------------------------
+            fullscreenButton.onclick = () => {
+              unityInstance.SetFullscreen(1);
+            };
+          })
+          .catch((message) => {
+            alert(message);
+          });
       };
       document.body.appendChild(script);
     </script>
