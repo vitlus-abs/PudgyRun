@@ -19,6 +19,7 @@
       <div id="unity-warning"></div>
       <div id="unity-footer">
         <div id="unity-webgl-logo"></div>
+        <!-- Fullscreen button still present for fallback outside Telegram -->
         <div id="unity-fullscreen-button"></div>
         <div id="unity-build-title">Pudgy Run</div>
       </div>
@@ -26,12 +27,12 @@
 
     <script>
       // === DOM References ===
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var container        = document.querySelector("#unity-container");
+      var canvas           = document.querySelector("#unity-canvas");
+      var loadingBar       = document.querySelector("#unity-loading-bar");
+      var progressBarFull  = document.querySelector("#unity-progress-bar-full");
       var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-      var warningBanner = document.querySelector("#unity-warning");
+      var warningBanner    = document.querySelector("#unity-warning");
 
       // === Show Warning / Error Banner ===
       function unityShowBanner(msg, type) {
@@ -82,7 +83,7 @@
         // If you want to lower the device pixel ratio for performance:
         // config.devicePixelRatio = 1;
       } else {
-        // Desktop: fixed size canvas (with the option to fullscreen)
+        // Desktop: fixed-size canvas (with the option to fullscreen)
         canvas.style.width = "960px";
         canvas.style.height = "600px";
       }
@@ -100,34 +101,40 @@
           // Hide the loading bar when done
           loadingBar.style.display = "none";
 
-          // Setup fullscreen button
-          fullscreenButton.onclick = () => {
-            // If running in Telegram WebApp with Bot API 8.0 features, use the new orientation + fullscreen
-            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-              // Attempt to lock orientation in landscape
-              if (Telegram.WebApp.lockOrientation) {
-                Telegram.WebApp.lockOrientation("landscape")
-                  .catch((err) => {
-                    console.warn("Orientation lock failed or not supported:", err);
-                  });
-              }
-              // Then request fullscreen
-              if (Telegram.WebApp.requestFullscreen) {
-                Telegram.WebApp.requestFullscreen()
-                  .catch((err) => {
-                    console.warn("Telegram WebApp fullscreen request failed:", err);
-                    // Fallback to Unity fullscreen if needed
-                    unityInstance.SetFullscreen(1);
-                  });
-              } else {
-                // Fallback to Unity's built-in fullscreen
-                unityInstance.SetFullscreen(1);
-              }
+          // -----------------------------------------------
+          // 1. Check if running in Telegram WebApp
+          // 2. If yes, automatically lock orientation and go fullscreen
+          // -----------------------------------------------
+          if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+            // Attempt to lock orientation in landscape
+            if (Telegram.WebApp.lockOrientation) {
+              Telegram.WebApp.lockOrientation("landscape")
+                .catch((err) => {
+                  console.warn("Orientation lock failed or not supported:", err);
+                });
+            }
+
+            // Then request fullscreen
+            if (Telegram.WebApp.requestFullscreen) {
+              Telegram.WebApp.requestFullscreen()
+                .catch((err) => {
+                  console.warn("Telegram WebApp fullscreen request failed:", err);
+                  // Fallback to Unity's built-in fullscreen if needed
+                  unityInstance.SetFullscreen(1);
+                });
             } else {
-              // Not in Telegram environment: fallback to Unity
+              // If no requestFullscreen API, fallback to Unity
               unityInstance.SetFullscreen(1);
             }
+          }
+
+          // -----------------------------------------------
+          // Fallback fullscreen button for non-Telegram usage
+          // -----------------------------------------------
+          fullscreenButton.onclick = () => {
+            unityInstance.SetFullscreen(1);
           };
+
         }).catch((message) => {
           alert(message);
         });
