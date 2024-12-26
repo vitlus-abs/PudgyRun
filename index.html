@@ -6,7 +6,26 @@
     <title>Unity WebGL Player | Pudgy Run</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+
+    <!-- Simple styling for the debug console overlay -->
+    <style>
+      #debug-console {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        max-height: 40%;
+        overflow-y: auto;
+        background: rgba(0, 0, 0, 0.75);
+        color: #fff;
+        font-family: monospace;
+        padding: 8px;
+        box-sizing: border-box;
+        z-index: 9999;
+      }
+    </style>
   </head>
+
   <body>
     <div id="unity-container" class="unity-desktop">
       <canvas id="unity-canvas" width="960" height="600" tabindex="-1"></canvas>
@@ -19,13 +38,29 @@
       <div id="unity-warning"></div>
       <div id="unity-footer">
         <div id="unity-webgl-logo"></div>
-        <!-- Fullscreen button still present for fallback outside Telegram -->
+        <!-- Fullscreen button for fallback outside Telegram -->
         <div id="unity-fullscreen-button"></div>
         <div id="unity-build-title">Pudgy Run</div>
       </div>
     </div>
 
+    <!-- Debug console container -->
+    <div id="debug-console"></div>
+
     <script>
+      // === Debug Logging Function ===
+      function debugLog(message) {
+        const debugDiv = document.getElementById('debug-console');
+        if (!debugDiv) return; // Just in case the element doesn't exist
+
+        const line = document.createElement('p');
+        line.textContent = message;
+        debugDiv.appendChild(line);
+
+        // Auto-scroll to the bottom
+        debugDiv.scrollTop = debugDiv.scrollHeight;
+      }
+
       // === DOM References ===
       var container        = document.querySelector("#unity-container");
       var canvas           = document.querySelector("#unity-canvas");
@@ -69,9 +104,13 @@
         showBanner: unityShowBanner,
       };
 
+      // Log initialization
+      debugLog("Starting setup...");
+
       // === Mobile vs Desktop Handling ===
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile: fill the browser area
+        debugLog("Mobile user detected. Applying mobile styles/viewport.");
+
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
@@ -83,7 +122,9 @@
         // If you want to lower the device pixel ratio for performance:
         // config.devicePixelRatio = 1;
       } else {
-        // Desktop: fixed-size canvas (with the option to fullscreen)
+        debugLog("Desktop user detected. Setting fixed canvas size.");
+
+        // Desktop: fixed-size canvas
         canvas.style.width = "960px";
         canvas.style.height = "600px";
       }
@@ -95,55 +136,60 @@
       var script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
-        alert("1");
+        debugLog("Unity loader script loaded. Creating Unity instance...");
 
         createUnityInstance(canvas, config, (progress) => {
           progressBarFull.style.width = (100 * progress) + "%";
         }).then((unityInstance) => {
+          debugLog("Unity instance created successfully.");
           // Hide the loading bar when done
           loadingBar.style.display = "none";
-          alert("2");
 
           // -----------------------------------------------
           // 1. Check if running in Telegram WebApp
           // 2. If yes, automatically lock orientation and go fullscreen
           // -----------------------------------------------
           if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
-            // Attempt to lock orientation in landscape
-            alert("3");
+            debugLog("Telegram.WebApp detected. Attempting orientation lock & fullscreen...");
 
+            // Attempt to lock orientation in landscape
             if (Telegram.WebApp.lockOrientation) {
-              Telegram.WebApp.lockOrientation("landscape")
-                .catch((err) => {
-                  console.warn("Orientation lock failed or not supported:", err);
-                  alert(err);
-                });
+              Telegram.WebApp.lockOrientation("landscape").then(() => {
+                debugLog("Orientation lock success: landscape.");
+              }).catch((err) => {
+                debugLog("Orientation lock failed or not supported: " + err);
+              });
+            } else {
+              debugLog("Telegram.WebApp.lockOrientation not supported in this environment.");
             }
 
             // Then request fullscreen
             if (Telegram.WebApp.requestFullscreen) {
-              Telegram.WebApp.requestFullscreen()
-                .catch((err) => {
-                  console.warn("Telegram WebApp fullscreen request failed:", err);
-                  alert(err);
-                  // Fallback to Unity's built-in fullscreen if needed
-                  unityInstance.SetFullscreen(1);
-                });
+              Telegram.WebApp.requestFullscreen().then(() => {
+                debugLog("Entered Telegram fullscreen successfully.");
+              }).catch((err) => {
+                debugLog("Telegram.WebApp.requestFullscreen failed: " + err);
+                // Fallback to Unity's built-in fullscreen
+                unityInstance.SetFullscreen(1);
+                debugLog("Falling back to Unity fullscreen.");
+              });
             } else {
-              // If no requestFullscreen API, fallback to Unity
+              debugLog("Telegram.WebApp.requestFullscreen not supported. Using Unity fullscreen.");
               unityInstance.SetFullscreen(1);
             }
+          } else {
+            debugLog("Not running inside Telegram. Using default settings.");
           }
-          alert("4");
 
           // -----------------------------------------------
           // Fallback fullscreen button for non-Telegram usage
           // -----------------------------------------------
           fullscreenButton.onclick = () => {
+            debugLog("Fullscreen button pressed. Using Unity's native fullscreen.");
             unityInstance.SetFullscreen(1);
           };
-
         }).catch((message) => {
+          debugLog("Unity instance creation failed: " + message);
           alert(message);
         });
       };
