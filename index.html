@@ -121,6 +121,11 @@
                     err
                   );
                 }
+                if (screen.orientation && screen.orientation.lock) {
+                  screen.orientation.lock("landscape").catch((err) => {
+                    console.warn("Standard orientation lock failed:", err);
+                  });
+                }
               }
               // Then request fullscreen
               if (Telegram.WebApp.requestFullscreen) {
